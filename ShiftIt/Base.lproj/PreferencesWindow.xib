@@ -327,6 +327,7 @@
                                             <stepperCell key="cell" continuous="YES" alignment="left" increment="0.25" minValue="0.20000000000000001" maxValue="100" doubleValue="0.20000000000000001" id="756"/>
                                             <connections>
                                                 <binding destination="191" name="value" keyPath="values.screenSizeDelta" id="788"/>
+                                                <outlet property="nextKeyView" destination="Mov-mx-001" id="Mov-nk-001"/>
                                             </connections>
                                         </stepper>
                                         <textField verticalHuggingPriority="750" id="736">
@@ -468,6 +469,150 @@
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                             <textFieldCell key="cell" controlSize="mini" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="height" id="808">
                                                 <font key="font" metaFont="miniSystem"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField verticalHuggingPriority="750" id="Mov-lb-001">
+                                            <rect key="frame" x="7" y="312" width="121" height="17"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Move:" id="Mov-lb-002">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <matrix verticalHuggingPriority="750" allowsEmptySelection="NO" id="Mov-mx-001">
+                                            <rect key="frame" x="22" y="213" width="105" height="91"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            <size key="cellSize" width="105" height="29"/>
+                                            <size key="intercellSpacing" width="4" height="2"/>
+                                            <buttonCell key="prototype" type="radio" title="Radio" imagePosition="left" alignment="left" inset="2" id="Mov-mx-002">
+                                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                <font key="font" metaFont="system"/>
+                                            </buttonCell>
+                                            <cells>
+                                                <column>
+                                                    <buttonCell type="radio" title="Fixed" imagePosition="left" alignment="left" state="on" tag="3001" inset="2" id="Mov-mx-003">
+                                                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                        <font key="font" metaFont="system"/>
+                                                    </buttonCell>
+                                                    <buttonCell type="radio" title="Window" imagePosition="left" alignment="left" tag="3002" inset="2" id="Mov-mx-004">
+                                                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                        <font key="font" metaFont="system"/>
+                                                    </buttonCell>
+                                                    <buttonCell type="radio" title="Screen" imagePosition="left" alignment="left" tag="3003" inset="2" id="Mov-mx-005">
+                                                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                        <font key="font" metaFont="system"/>
+                                                    </buttonCell>
+                                                </column>
+                                            </cells>
+                                            <connections>
+                                                <binding destination="191" name="selectedTag" keyPath="values.moveDeltaType" id="Mov-mx-006"/>
+                                                <outlet property="nextKeyView" destination="Mov-fx-001" id="Mov-mx-007"/>
+                                            </connections>
+                                        </matrix>
+                                        <textField verticalHuggingPriority="750" id="Mov-fx-001">
+                                            <rect key="frame" x="135" y="283" width="45" height="22"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="Mov-fx-002">
+                                                <numberFormatter key="formatter" formatterBehavior="default10_4" localizesFormat="NO" usesGroupingSeparator="NO" groupingSize="0" minimumIntegerDigits="0" maximumIntegerDigits="42" id="Mov-fx-003">
+                                                    <real key="minimum" value="1"/>
+                                                    <real key="maximum" value="999"/>
+                                                </numberFormatter>
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                            <connections>
+                                                <binding destination="191" name="value" keyPath="values.fixedMoveDelta" id="Mov-fx-004"/>
+                                                <outlet property="nextKeyView" destination="Mov-fs-001" id="Mov-fx-005"/>
+                                            </connections>
+                                        </textField>
+                                        <stepper horizontalHuggingPriority="750" verticalHuggingPriority="750" id="Mov-fs-001">
+                                            <rect key="frame" x="184" y="280" width="19" height="27"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <stepperCell key="cell" continuous="YES" alignment="left" minValue="1" maxValue="999" id="Mov-fs-002"/>
+                                            <connections>
+                                                <binding destination="191" name="value" keyPath="values.fixedMoveDelta" id="Mov-fs-003"/>
+                                                <outlet property="nextKeyView" destination="Mov-wx-001" id="Mov-fs-004"/>
+                                            </connections>
+                                        </stepper>
+                                        <textField verticalHuggingPriority="750" id="Mov-px-001">
+                                            <rect key="frame" x="205" y="288" width="21" height="17"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="px" id="Mov-px-002">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField verticalHuggingPriority="750" id="Mov-wx-001">
+                                            <rect key="frame" x="135" y="252" width="45" height="22"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="Mov-wx-002">
+                                                <numberFormatter key="formatter" formatterBehavior="default10_4" localizesFormat="NO" numberStyle="decimal" minimumIntegerDigits="1" maximumIntegerDigits="309" maximumFractionDigits="3" id="Mov-wx-003">
+                                                    <real key="minimum" value="1"/>
+                                                    <real key="maximum" value="100"/>
+                                                </numberFormatter>
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                            <connections>
+                                                <binding destination="191" name="value" keyPath="values.windowMoveDelta" id="Mov-wx-004"/>
+                                                <outlet property="nextKeyView" destination="Mov-ws-001" id="Mov-wx-005"/>
+                                            </connections>
+                                        </textField>
+                                        <stepper horizontalHuggingPriority="750" verticalHuggingPriority="750" id="Mov-ws-001">
+                                            <rect key="frame" x="184" y="249" width="19" height="27"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <stepperCell key="cell" continuous="YES" alignment="left" increment="0.25" minValue="0.25" maxValue="100" doubleValue="1" id="Mov-ws-002"/>
+                                            <connections>
+                                                <binding destination="191" name="value" keyPath="values.windowMoveDelta" id="Mov-ws-003"/>
+                                                <outlet property="nextKeyView" destination="Mov-sx-001" id="Mov-ws-004"/>
+                                            </connections>
+                                        </stepper>
+                                        <textField verticalHuggingPriority="750" id="Mov-wp-001">
+                                            <rect key="frame" x="205" y="257" width="13" height="17"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="%" id="Mov-wp-002">
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                        </textField>
+                                        <textField verticalHuggingPriority="750" id="Mov-sx-001">
+                                            <rect key="frame" x="135" y="218" width="44" height="22"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="Mov-sx-002">
+                                                <numberFormatter key="formatter" formatterBehavior="default10_4" localizesFormat="NO" numberStyle="decimal" minimumIntegerDigits="1" maximumIntegerDigits="309" maximumFractionDigits="3" id="Mov-sx-003">
+                                                    <real key="minimum" value="1"/>
+                                                    <real key="maximum" value="100"/>
+                                                </numberFormatter>
+                                                <font key="font" metaFont="system"/>
+                                                <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            </textFieldCell>
+                                            <connections>
+                                                <binding destination="191" name="value" keyPath="values.screenMoveDelta" id="Mov-sx-004"/>
+                                                <outlet property="nextKeyView" destination="Mov-ss-001" id="Mov-sx-005"/>
+                                            </connections>
+                                        </textField>
+                                        <stepper horizontalHuggingPriority="750" verticalHuggingPriority="750" id="Mov-ss-001">
+                                            <rect key="frame" x="184" y="215" width="19" height="27"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <stepperCell key="cell" continuous="YES" alignment="left" increment="0.25" minValue="0.20000000000000001" maxValue="100" doubleValue="0.20000000000000001" id="Mov-ss-002"/>
+                                            <connections>
+                                                <binding destination="191" name="value" keyPath="values.screenMoveDelta" id="Mov-ss-003"/>
+                                            </connections>
+                                        </stepper>
+                                        <textField verticalHuggingPriority="750" id="Mov-sp-001">
+                                            <rect key="frame" x="205" y="223" width="13" height="17"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="%" id="Mov-sp-002">
+                                                <font key="font" metaFont="system"/>
                                                 <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>

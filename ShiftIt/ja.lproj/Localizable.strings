@@ -20,6 +20,8 @@
 "Toggle Full Screen" = "フルスクリーンの切り替え";
 "Increase" = "ウインドウの拡大";
 "Reduce" = "ウインドウの縮小";
+"Move Left" = "ウインドウを左へ移動";
+"Move Right" = "ウインドウを右へ移動";
 "Next Screen" = "次のスクリーン";
 "Previous Screen" = "前のスクリーン";
 

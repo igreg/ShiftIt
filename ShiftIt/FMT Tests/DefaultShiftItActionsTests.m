@@ -558,3 +558,88 @@ static void assertRect(XCTestCase *tc, NSRect actual, CGFloat x, CGFloat y, CGFl
 }
 
 @end
+
+#pragma mark - MoveLeftRightShiftItAction
+
+@interface MoveLeftRightTests : XCTestCase
+@end
+
+@implementation MoveLeftRightTests
+
+- (void)setUp {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setInteger:kFixedSizeDeltaType forKey:kMoveDeltaTypePrefKey];
+    [defaults setInteger:100 forKey:kFixedMoveDeltaPrefKey];
+    [defaults setDouble:10 forKey:kWindowMoveDeltaPrefKey];
+    [defaults setDouble:5 forKey:kScreenMoveDeltaPrefKey];
+}
+
+- (void)testMoveRightFixed {
+    MoveLeftRightShiftItAction *action = [[MoveLeftRightShiftItAction alloc] initWithMode:YES];
+
+    NSRect window = NSMakeRect(500, 300, 600, 400);
+    AnchoredRect result = [action shiftWindowRect:window screenSize:kScreen withContext:nil];
+
+    AssertRect(result.rect, 600, 300, 600, 400, @"Move right");
+}
+
+- (void)testMoveLeftFixed {
+    MoveLeftRightShiftItAction *action = [[MoveLeftRightShiftItAction alloc] initWithMode:NO];
+
+    NSRect window = NSMakeRect(500, 300, 600, 400);
+    AnchoredRect result = [action shiftWindowRect:window screenSize:kScreen withContext:nil];
+
+    AssertRect(result.rect, 400, 300, 600, 400, @"Move left");
+}
+
+- (void)testMoveByWindowWidth {
+    [[NSUserDefaults standardUserDefaults] setInteger:kWindowSizeDeltaType forKey:kMoveDeltaTypePrefKey];
+    MoveLeftRightShiftItAction *action = [[MoveLeftRightShiftItAction alloc] initWithMode:YES];
+
+    // 10% of 600 = 60
+    NSRect window = NSMakeRect(500, 300, 600, 400);
+    AnchoredRect result = [action shiftWindowRect:window screenSize:kScreen withContext:nil];
+
+    AssertRect(result.rect, 560, 300, 600, 400, @"Move right by window width");
+}
+
+- (void)testMoveByScreenWidth {
+    [[NSUserDefaults standardUserDefaults] setInteger:kScreenSizeDeltaType forKey:kMoveDeltaTypePrefKey];
+    MoveLeftRightShiftItAction *action = [[MoveLeftRightShiftItAction alloc] initWithMode:NO];
+
+    // 5% of 1920 = 96
+    NSRect window = NSMakeRect(500, 300, 600, 400);
+    AnchoredRect result = [action shiftWindowRect:window screenSize:kScreen withContext:nil];
+
+    AssertRect(result.rect, 404, 300, 600, 400, @"Move left by screen width");
+}
+
+- (void)testMoveLeftStopsAtScreenEdge {
+    MoveLeftRightShiftItAction *action = [[MoveLeftRightShiftItAction alloc] initWithMode:NO];
+
+    NSRect window = NSMakeRect(40, 300, 600, 400);
+    AnchoredRect result = [action shiftWindowRect:window screenSize:kScreen withContext:nil];
+
+    AssertRect(result.rect, 0, 300, 600, 400, @"Move left clamped");
+}
+
+- (void)testMoveRightStopsAtScreenEdge {
+    MoveLeftRightShiftItAction *action = [[MoveLeftRightShiftItAction alloc] initWithMode:YES];
+
+    NSRect window = NSMakeRect(1280, 300, 600, 400);
+    AnchoredRect result = [action shiftWindowRect:window screenSize:kScreen withContext:nil];
+
+    AssertRect(result.rect, 1320, 300, 600, 400, @"Move right clamped");
+}
+
+- (void)testInvalidDeltaLeavesWindowUnchanged {
+    [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:kFixedMoveDeltaPrefKey];
+    MoveLeftRightShiftItAction *action = [[MoveLeftRightShiftItAction alloc] initWithMode:YES];
+
+    NSRect window = NSMakeRect(500, 300, 600, 400);
+    AnchoredRect result = [action shiftWindowRect:window screenSize:kScreen withContext:nil];
+
+    AssertRect(result.rect, 500, 300, 600, 400, @"Unchanged");
+}
+
+@end

@@ -52,6 +52,10 @@ NSString *const kFixedSizeWidthDeltaPrefKey = @"fixedSizeWidthDelta";
 NSString *const kFixedSizeHeightDeltaPrefKey = @"fixedSizeHeightDelta";
 NSString *const kWindowSizeDeltaPrefKey = @"windowSizeDelta";
 NSString *const kScreenSizeDeltaPrefKey = @"screenSizeDelta";
+NSString *const kMoveDeltaTypePrefKey = @"moveDeltaType";
+NSString *const kFixedMoveDeltaPrefKey = @"fixedMoveDelta";
+NSString *const kWindowMoveDeltaPrefKey = @"windowMoveDelta";
+NSString *const kScreenMoveDeltaPrefKey = @"screenMoveDelta";
 NSString *const kMutipleActionsCycleWindowSizes = @"multipleActionsCycleWindowSizes";
 
 // AX Driver Options
@@ -704,6 +708,13 @@ NSDictionary *allShiftActions = nil;
     
     delegate = [[[IncreaseReduceShiftItAction alloc] initWithMode:NO] autorelease];
     [actions setObject:[[[ShiftItAction alloc] initWithIdentifier:@"reduce" label:@"Reduce" uiTag:kSIMenuUITagPrefix+23 delegate:delegate] autorelease] forKey:@"reduce"];
+    
+    // Move actions (moveleft, moveright)
+    delegate = [[[MoveLeftRightShiftItAction alloc] initWithMode:NO] autorelease];
+    [actions setObject:[[[ShiftItAction alloc] initWithIdentifier:@"moveleft" label:@"Move Left" uiTag:kSIMenuUITagPrefix+26 delegate:delegate] autorelease] forKey:@"moveleft"];
+    
+    delegate = [[[MoveLeftRightShiftItAction alloc] initWithMode:YES] autorelease];
+    [actions setObject:[[[ShiftItAction alloc] initWithIdentifier:@"moveright" label:@"Move Right" uiTag:kSIMenuUITagPrefix+27 delegate:delegate] autorelease] forKey:@"moveright"];
     
     // Screen switching actions (nextscreen, previousscreen)
     delegate = [[[ScreenChangeShiftItAction alloc] initWithMode:YES] autorelease];

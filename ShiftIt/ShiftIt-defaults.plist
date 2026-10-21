@@ -148,6 +148,22 @@
 	<integer>35</integer>
 	<key>previousscreenModifiers</key>
 	<real>1835008</real>
+	<key>moveleftKeyCode</key>
+	<integer>123</integer>
+	<key>moveleftModifiers</key>
+	<integer>1835008</integer>
+	<key>moverightKeyCode</key>
+	<integer>124</integer>
+	<key>moverightModifiers</key>
+	<integer>1835008</integer>
+	<key>moveDeltaType</key>
+	<integer>3003</integer>
+	<key>fixedMoveDelta</key>
+	<integer>50</integer>
+	<key>windowMoveDelta</key>
+	<integer>10</integer>
+	<key>screenMoveDelta</key>
+	<real>6.25</real>
 	<key>mutipleActionsCycleWindowSizes</key>
 	<true/>
 </dict>
