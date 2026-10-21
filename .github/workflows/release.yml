@@ -35,14 +35,67 @@ jobs:
           TAG_NAME="${GITHUB_REF_NAME}"
           VERSION="${TAG_NAME#version-}"
 
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Invalid version format: $VERSION (expected X.Y.Z)"
+          # Betas use a "bN" suffix (e.g. 2.2.0b1), not "-beta": Sparkle
+          # treats 2.2.0-beta as equal to 2.2.0 but orders 2.2.0b1 < 2.2.0
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(b[0-9]+)?$ ]]; then
+            echo "::error::Invalid version format: $VERSION (expected X.Y.Z or X.Y.ZbN)"
             exit 1
           fi
 
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG_NAME" >> "$GITHUB_OUTPUT"
-          echo "archive_name=ShiftIt-${VERSION}.zip" >> "$GITHUB_OUTPUT"
+          if [[ "$VERSION" == *b* ]]; then
+            BETA=true
+          else
+            BETA=false
+          fi
+
+          {
+            echo "version=$VERSION"
+            echo "tag=$TAG_NAME"
+            echo "archive_name=ShiftIt-${VERSION}.zip"
+            echo "beta=$BETA"
+          } >> "$GITHUB_OUTPUT"
+
+      # Sign and notarise when the signing secrets are configured, otherwise
+      # build an ad-hoc signed pre-release that is never added to the appcast
+      - name: Detect signing mode
+        id: mode
+        env:
+          CERTIFICATE_P12: ${{ secrets.DEVELOPER_ID_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          NOTARY_APPLE_ID: ${{ secrets.NOTARY_APPLE_ID }}
+          NOTARY_PASSWORD: ${{ secrets.NOTARY_PASSWORD }}
+          SPARKLE_KEY: ${{ secrets.SPARKLE_ED_KEY }}
+          BETA: ${{ steps.version.outputs.beta }}
+        run: |
+          SECRETS=(CERTIFICATE_P12 CERTIFICATE_PASSWORD APPLE_TEAM_ID NOTARY_APPLE_ID NOTARY_PASSWORD SPARKLE_KEY)
+          MISSING=()
+          for name in "${SECRETS[@]}"; do
+            if [ -z "${!name}" ]; then
+              MISSING+=("$name")
+            fi
+          done
+
+          if [ ${#MISSING[@]} -eq 0 ]; then
+            SIGNED=true
+          elif [ ${#MISSING[@]} -eq ${#SECRETS[@]} ]; then
+            SIGNED=false
+            echo "::warning::No signing secrets configured: building an unsigned pre-release"
+          else
+            # Fail rather than silently ship an unsigned build when a secret is missing
+            echo "::error::Some signing secrets are missing: ${MISSING[*]}"
+            exit 1
+          fi
+
+          if [ "$SIGNED" = true ] && [ "$BETA" = false ]; then
+            PRERELEASE=false
+          else
+            PRERELEASE=true
+          fi
+
+          echo "signed=$SIGNED" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "Signed: $SIGNED, pre-release: $PRERELEASE"
 
       - name: Stamp version into Info.plist
         env:
@@ -68,6 +121,7 @@ jobs:
       # --- Signing Setup ---
 
       - name: Import signing certificate
+        if: steps.mode.outputs.signed == 'true'
         env:
           CERTIFICATE_P12: ${{ secrets.DEVELOPER_ID_CERTIFICATE_P12 }}
           CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
@@ -106,49 +160,65 @@ jobs:
       - name: Build for release
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          SIGNED: ${{ steps.mode.outputs.signed }}
         run: |
+          if [ "$SIGNED" = true ]; then
+            SIGNING_SETTINGS=(
+              CODE_SIGN_IDENTITY="Developer ID Application"
+              DEVELOPMENT_TEAM="$APPLE_TEAM_ID"
+              OTHER_CODE_SIGN_FLAGS="--timestamp --keychain $KEYCHAIN_PATH"
+              ENABLE_HARDENED_RUNTIME=YES
+            )
+          else
+            # Ad-hoc signature, as in CI. No hardened runtime, because its library
+            # validation needs a Team ID that ad-hoc signed frameworks don't have
+            SIGNING_SETTINGS=(
+              CODE_SIGN_IDENTITY="-"
+              ENABLE_HARDENED_RUNTIME=NO
+            )
+          fi
+
           xcodebuild -project "$PROJECT_PATH" \
             -scheme "$SCHEME" \
             -configuration Release \
             -derivedDataPath "$ARCHIVE_DIR" \
-            CODE_SIGN_IDENTITY="Developer ID Application" \
-            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            OTHER_CODE_SIGN_FLAGS="--timestamp --keychain $KEYCHAIN_PATH" \
-            ENABLE_HARDENED_RUNTIME=YES \
+            "${SIGNING_SETTINGS[@]}" \
             build | xcpretty || exit 1
 
       - name: Re-sign app and embedded frameworks
+        env:
+          SIGNED: ${{ steps.mode.outputs.signed }}
         run: |
           APP_PATH="$ARCHIVE_DIR/Build/Products/Release/ShiftIt.app"
-          IDENTITY="Developer ID Application"
+
+          if [ "$SIGNED" = true ]; then
+            SIGN_ARGS=(--sign "Developer ID Application" --timestamp --options runtime --keychain "$KEYCHAIN_PATH")
+          else
+            SIGN_ARGS=(--sign -)
+          fi
 
           # Re-sign all nested code (Sparkle XPC services, helpers, framework)
           find "$APP_PATH/Contents/Frameworks" -type f -perm +111 -o -name "*.dylib" | while read -r binary; do
-            codesign --force --sign "$IDENTITY" --timestamp --options runtime \
-              --keychain "$KEYCHAIN_PATH" "$binary" || true
+            codesign --force "${SIGN_ARGS[@]}" "$binary" || true
           done
 
           # Re-sign XPC services
           find "$APP_PATH" -name "*.xpc" -type d | while read -r xpc; do
-            codesign --force --deep --sign "$IDENTITY" --timestamp --options runtime \
-              --keychain "$KEYCHAIN_PATH" "$xpc"
+            codesign --force --deep "${SIGN_ARGS[@]}" "$xpc"
           done
 
           # Re-sign nested .app bundles (e.g., Sparkle Updater.app)
           find "$APP_PATH" -name "*.app" -not -path "$APP_PATH" -type d | while read -r nested_app; do
-            codesign --force --deep --sign "$IDENTITY" --timestamp --options runtime \
-              --keychain "$KEYCHAIN_PATH" "$nested_app"
+            codesign --force --deep "${SIGN_ARGS[@]}" "$nested_app"
           done
 
           # Re-sign the Sparkle framework itself
           find "$APP_PATH" -name "*.framework" -type d | while read -r fw; do
-            codesign --force --sign "$IDENTITY" --timestamp --options runtime \
-              --keychain "$KEYCHAIN_PATH" "$fw"
+            codesign --force "${SIGN_ARGS[@]}" "$fw"
           done
 
           # Finally re-sign the main app
-          codesign --force --sign "$IDENTITY" --timestamp --options runtime \
-            --keychain "$KEYCHAIN_PATH" "$APP_PATH"
+          codesign --force "${SIGN_ARGS[@]}" "$APP_PATH"
 
       - name: Verify code signature
         run: |
@@ -172,6 +242,7 @@ jobs:
 
       - name: Notarize app
         id: notarize
+        if: steps.mode.outputs.signed == 'true'
         env:
           APPLE_ID: ${{ secrets.NOTARY_APPLE_ID }}
           NOTARY_PASSWORD: ${{ secrets.NOTARY_PASSWORD }}
@@ -215,6 +286,7 @@ jobs:
 
       - name: Sign with Sparkle EdDSA
         id: sparkle
+        if: steps.mode.outputs.signed == 'true'
         env:
           SPARKLE_KEY: ${{ secrets.SPARKLE_ED_KEY }}
           ARCHIVE_NAME: ${{ steps.version.outputs.archive_name }}
@@ -244,7 +316,9 @@ jobs:
 
       # --- Update Appcast ---
 
+      # Only signed, non-beta releases go to the appcast that Sparkle offers to every user
       - name: Generate appcast.xml
+        if: steps.mode.outputs.prerelease == 'false'
         env:
           VERSION: ${{ steps.version.outputs.version }}
           ARCHIVE_NAME: ${{ steps.version.outputs.archive_name }}
@@ -280,6 +354,7 @@ jobs:
           APPCAST_EOF
 
       - name: Commit appcast update
+        if: steps.mode.outputs.prerelease == 'false'
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
@@ -299,12 +374,20 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           TAG: ${{ steps.version.outputs.tag }}
           ARCHIVE_NAME: ${{ steps.version.outputs.archive_name }}
+          SIGNED: ${{ steps.mode.outputs.signed }}
+          PRERELEASE: ${{ steps.mode.outputs.prerelease }}
         run: |
           ARCHIVE_PATH="$ARCHIVE_DIR/$ARCHIVE_NAME"
 
-          gh release create "$TAG" "$ARCHIVE_PATH" \
-            --title "ShiftIt $VERSION" \
-            --generate-notes
+          RELEASE_ARGS=(--title "ShiftIt $VERSION" --generate-notes)
+          if [ "$PRERELEASE" = true ]; then
+            RELEASE_ARGS+=(--prerelease)
+          fi
+          if [ "$SIGNED" = false ]; then
+            RELEASE_ARGS+=(--notes "This build is not signed with a Developer ID or notarised, so macOS blocks it the first time it is opened. To allow it, try to open ShiftIt, then go to System Settings > Privacy & Security and click Open Anyway, or run \`xattr -dr com.apple.quarantine /Applications/ShiftIt.app\`. It is not offered through automatic updates.")
+          fi
+
+          gh release create "$TAG" "$ARCHIVE_PATH" "${RELEASE_ARGS[@]}"
 
       # --- Cleanup ---
 
