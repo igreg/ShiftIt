@@ -53,6 +53,15 @@ const extern SimpleWindowGeometryChangeBlock shiftItThirdRight;
 
 @end
 
+@interface MoveLeftRightShiftItAction : AbstractWindowGeometryShiftItAction {
+ @private
+    BOOL right_;
+}
+
+- (id) initWithMode:(BOOL)right;
+
+@end
+
 @interface ToggleZoomShiftItAction : NSObject<SIActionDelegate>
 @end
 

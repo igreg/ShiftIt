@@ -474,6 +474,58 @@ const SimpleWindowGeometryChangeBlock shiftItThirdRight = ^AnchoredRect(NSRect w
 
 @end
 
+@implementation MoveLeftRightShiftItAction
+
+- (id)initWithMode:(BOOL)right {
+
+    if (![self init]) {
+        return nil;
+    }
+
+    right_ = right;
+
+    return self;
+}
+
+- (AnchoredRect)shiftWindowRect:(NSRect)windowRect screenSize:(NSSize)screenSize withContext:(id<SIWindowContext>)windowContext {
+    double kx = 0;
+
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+
+    // get the move delta settings - in pixels
+    NSInteger moveDeltaType = [defaults integerForKey:kMoveDeltaTypePrefKey];
+    switch (moveDeltaType) {
+        case kFixedSizeDeltaType:
+            kx = [defaults integerForKey:kFixedMoveDeltaPrefKey];
+            break;
+        case kWindowSizeDeltaType:
+            kx = windowRect.size.width * [defaults doubleForKey:kWindowMoveDeltaPrefKey] / 100;
+            break;
+        case kScreenSizeDeltaType:
+            kx = screenSize.width * [defaults doubleForKey:kScreenMoveDeltaPrefKey] / 100;
+            break;
+        default:
+            break;
+    }
+
+    if (kx <= 0) {
+        FMTLogError(@"Invalid size for move delta: %f (type: %ld)", kx, moveDeltaType);
+        return MakeAnchoredRect(windowRect, 0);
+    }
+
+    // target window rect
+    NSRect r = windowRect;
+    r.origin.x += right_ ? kx : -kx;
+
+    // keep the window on the screen
+    r.origin.x = r.origin.x > screenSize.width - r.size.width ? screenSize.width - r.size.width : r.origin.x;
+    r.origin.x = r.origin.x < 0 ? 0 : r.origin.x;
+
+    return MakeAnchoredRect(r, 0);
+}
+
+@end
+
 @implementation ToggleZoomShiftItAction
 
 - (BOOL)execute:(id <SIWindowContext>)windowContext error:(NSError **)error {

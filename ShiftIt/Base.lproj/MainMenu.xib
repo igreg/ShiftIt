@@ -94,6 +94,13 @@
                     <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES" command="YES"/>
                 </menuItem>
                 <menuItem isSeparatorItem="YES" id="788"/>
+                <menuItem title="Move Left" tag="2026" keyEquivalent="" id="MvL-mn-001">
+                    <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES" command="YES"/>
+                </menuItem>
+                <menuItem title="Move Right" tag="2027" keyEquivalent="" id="MvR-mn-001">
+                    <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES" command="YES"/>
+                </menuItem>
+                <menuItem isSeparatorItem="YES" id="MvS-mn-001"/>
                 <menuItem title="Next Screen" tag="2024" keyEquivalent="n" id="794">
                     <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES" command="YES"/>
                 </menuItem>

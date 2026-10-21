@@ -240,6 +240,9 @@ static NSString *hotkeyIdentifiers[] = {
     @"increase",
     @"reduce",
     NULL,
+    @"moveleft",
+    @"moveright",
+    NULL,
     @"nextscreen",
     @"previousscreen"
 };
